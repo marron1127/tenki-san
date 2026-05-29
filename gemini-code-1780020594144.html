@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学校デジタルサイネージ - 今日の学習</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー */
+        header {
+            background-color: #34495e;
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* メインレイアウト */
+        main {
+            flex: 1;
+            display: flex;
+            padding: 30px;
+            gap: 30px;
+            height: calc(100vh - 100px);
+        }
+
+        /* 各カードの共通スタイル */
+        .card {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+        }
+
+        /* カードの見出し */
+        .card h2 {
+            font-size: 2.5rem;
+            width: 100%;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* 英単語カードのテーマカラー（オレンジ系） */
+        .english-card h2 {
+            color: #e67e22;
+            border-bottom: 5px solid #e67e22;
+        }
+
+        /* 漢字カードのテーマカラー（緑系） */
+        .kanji-card h2 {
+            color: #27ae60;
+            border-bottom: 5px solid #27ae60;
+        }
+
+        /* メインの大きな文字（単語や漢字） */
+        .main-word {
+            font-size: 6.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        /* 意味や読み方のスタイル */
+        .sub-info {
+            font-size: 2.8rem;
+            color: #555;
+            line-height: 1.5;
+            background-color: #f9f9f9;
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .example-sentence {
+            font-size: 1.8rem;
+            color: #7f8c8d;
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ヘッダー（日付と時計） -->
+    <header>
+        <div id="date-display">2026年00月00日 (曜日)</div>
+        <div id="clock">00:00:00</div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main>
+        <!-- 今日の英単語 -->
+        <section class="card english-card">
+            <h2>🔤 今日の英単語</h2>
+            <div class="main-word" id="en-word">Loading...</div>
+            <div class="sub-info" id="en-meaning">
+                <!-- ここに意味と例文が入る -->
+            </div>
+        </section>
+
+        <!-- 今日の漢字 -->
+        <section class="card kanji-card">
+            <h2>🖌️ 今日の漢字</h2>
+            <div class="main-word" id="kj-word">Loading...</div>
+            <div class="sub-info" id="kj-meaning">
+                <!-- ここに読みと意味が入る -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- ★ここに1週間分（1〜7日）のデータを登録します ★ ---
+        // ※ 1ヶ月分にする場合は、要素を31個まで増やせばOKです！
+        const dailyData = {
+            1: {
+                english: { word: "achieve", meaning: "【動】～を達成する、成し遂げる", example: "Achieve a goal（目標を達成する）" },
+                kanji: { word: "刷新", meaning: "【音読み】さっしん<br>【意味】悪い部分をすべて新しくすること。" }
+            },
+            2: {
+                english: { word: "benefit", meaning: "【名】利益、恩恵<br>【動】～の利益になる", example: "Mutual benefit（互いの利益）" },
+                kanji: { word: "情緒", meaning: "【音読み】じょうちょ / じょうしょ<br>【意味】折に触れて起こる様々な感情。味わい。" }
+            },
+            3: {
+                english: { word: "creative", meaning: "【形】創造的な、独創的な", example: "Creative thinking（創造的な思考）" },
+                kanji: { word: "勾配", meaning: "【音読み】こうばい<br>【意味】傾き。坂の傾斜の度合い。" }
+            },
+            4: {
+                english: { word: "diligent", meaning: "【形】勤勉な、熱心な", example: "A diligent student（勤勉な学生）" },
+                kanji: { word: "捗進", meaning: "【音読み】ちょくしん<br>【意味】物事がはかどり進むこと。" }
+            },
+            5: {
+                english: { word: "essential", meaning: "【形】不可欠な、極めて重要な", example: "Essential for health（健康に不可欠な）" },
+                kanji: { word: "一瞥", meaning: "【音読み】いちべつ<br>【意味】ちらっと見ること。" }
+            },
+            6: {
+                english: { word: "flexible", meaning: "【形】柔軟な、曲げやすい", example: "Flexible working hours（フレックスタイム）" },
+                kanji: { word: "婉曲", meaning: "【音読み】えんきょく<br>【意味】遠回しに表現すること。" }
+            },
+            7: {
+                english: { word: "generous", meaning: "【形】気前のよい、寛大な", example: "A generous person（寛大な人）" },
+                kanji: { word: "含蓄", meaning: "【音読み】がんちく<br>【意味】言葉などの表面に出ない深い意味。" }
+            }
+        };
+
+        // 表示を更新する関数
+        function updateSignage() {
+            const now = new Date();
+            
+            // 1. 時計と日付の更新
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const dayList = ["日", "月", "火", "水", "木", "金", "土"];
+            const day = dayList[now.getDay()];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('date-display').textContent = `${year}年${month}月${date}日 (${day})`;
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+
+            // 2. 日替わりコンテンツの更新
+            // 今回は「（今日の日付 ÷ 7）の余り + 1」で1〜7のルートを自動ループさせます
+            // ※1ヶ月分(31日分)データを作る場合は「const contentIndex = date;」にするだけでOK！
+            const contentIndex = ((date - 1) % 7) + 1; 
+            const todayContent = dailyData[contentIndex];
+
+            if (todayContent) {
+                // 英単語の反映
+                document.getElementById('en-word').textContent = todayContent.english.word;
+                document.getElementById('en-meaning').innerHTML = `
+                    <div>${todayContent.english.meaning}</div>
+                    <div class="example-sentence">${todayContent.english.example}</div>
+                `;
+                // 漢字の反映
+                document.getElementById('kj-word').textContent = todayContent.kanji.word;
+                document.getElementById('kj-meaning').innerHTML = `<div>${todayContent.kanji.meaning}</div>`;
+            }
+        }
+
+        // 1秒ごとに時計とコンテンツをチェック
+        setInterval(updateSignage, 1000);
+        updateSignage(); // 起動時に実行
+    </script>
+</body>
+</html>
