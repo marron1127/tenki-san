@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signage - News</title>
+    <style>
+        /* サイネージ向け：黒背景と大きな文字で視認性を重視 */
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #0f172a; /* 深いダークブルー */
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* スクロールバーを隠す */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ヘッダー（時計とタイトル） */
+        header {
+            background-color: #1e293b;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid #3b82f6;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 32px;
+            letter-spacing: 2px;
+            color: #3b82f6;
+        }
+
+        #digital-clock {
+            font-size: 28px;
+            font-weight: bold;
+            color: #94a3b8;
+        }
+
+        /* ニュース表示エリア */
+        .signage-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        /* スライドするニュースカード */
+        .news-slide {
+            width: 100%;
+            max-width: 1200px;
+            background-color: #1e293b;
+            border-radius: 16px;
+            padding: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; /* 初期状態は非表示 */
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        /* アクティブな（今表示すべき）スライドだけ表示 */
+        .news-slide.active {
+            display: block;
+        }
+
+        .news-date {
+            font-size: 20px;
+            color: #3b82f6;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .news-title {
+            font-size: 48px; /* 遠くからでも見える大きさ */
+            line-height: 1.4;
+            margin: 0 0 30px 0;
+            color: #ffffff;
+        }
+
+        .news-description {
+            font-size: 28px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* フェードインのアニメーション */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ローディング・エラー表示 */
+        .status-message {
+            font-size: 32px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>LATEST NEWS</h1>
+        <div id="digital-clock">0000/00/00 00:00:00</div>
+    </header>
+
+    <div class="signage-container" id="signage-container">
+        <div class="status-message">ニュースを読み込んでいます...</div>
+    </div>
+
+    <script>
+        const RSS_URL = 'https://mainichi.jp/rss/etc/mainichi-flash.rss';
+        const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+       
+        const SLIDE_INTERVAL = 6000; // ★記事が切り替わる時間（6000ミリ秒 = 6秒）
+        const REFRESH_INTERVAL = 3600000; // ★最新ニュースに更新する間隔（1時間）
+
+        let slideIndex = 0;
+        let slideTimer = null;
+
+        // 1. ニュースデータを取得する関数
+        async function loadNews() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+               
+                const container = document.getElementById('signage-container');
+               
+                if (data.status === 'ok' && data.items.length > 0) {
+                    container.innerHTML = ''; // メッセージをクリア
+                   
+                    data.items.forEach((item, index) => {
+                        const date = new Date(item.pubDate);
+                        const formattedDate = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+                        // タグなどを除外して綺麗な本文にする処理
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = item.description;
+                        const cleanDescription = tempDiv.textContent || tempDiv.innerText || '詳細は元記事をご覧ください。';
+
+                        const slide = document.createElement('div');
+                        slide.className = 'news-slide';
+                        slide.innerHTML = `
+                            <div class="news-date">${formattedDate}</div>
+                            <h2 class="news-title">${item.title}</h2>
+                            <p class="news-description">${cleanDescription}</p>
+                        `;
+                        container.appendChild(slide);
+                    });
+
+                    // スライドショーの開始
+                    slideIndex = 0;
+                    startSlideShow();
+
+                } else {
+                    container.innerHTML = '<div class="status-message">ニュースの取得に失敗しました。</div>';
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('signage-container').innerHTML = '<div class="status-message">エラーが発生しました。</div>';
+            }
+        }
+
+        // 2. 自動スライドショーを制御する関数
+        function startSlideShow() {
+            if (slideTimer) clearInterval(slideTimer);
+           
+            const slides = document.getElementsByClassName('news-slide');
+            if (slides.length === 0) return;
+
+            // 最初の1枚目を表示
+            slides[0].classList.add('active');
+
+            // 一定時間ごとに切り替え
+            slideTimer = setInterval(() => {
+                // 現在のスライドを非表示に
+                slides[slideIndex].classList.remove('active');
+               
+                // 次のインデックス計算（最後までいったら0に戻る）
+                slideIndex = (slideIndex + 1) % slides.length;
+               
+                // 次のスライドを表示
+                slides[slideIndex].classList.add('active');
+            }, SLIDE_INTERVAL);
+        }
+
+        // 3. サイネージ用の時計を表示する関数
+        function updateClock() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+            const dd = now.getDate().toString().padStart(2, '0');
+            const hh = now.getHours().toString().padStart(2, '0');
+            const mi = now.getMinutes().toString().padStart(2, '0');
+            const ss = now.getSeconds().toString().padStart(2, '0');
+           
+            document.getElementById('digital-clock').innerText = `${yyyy}/${mm}/${dd} ${hh}:${mi}:${ss}`;
+        }
+
+        // 起動処理
+        loadNews();
+        setInterval(updateClock, 1000); // 時計は1秒ごとに更新
+        updateClock();
+
+        // 定期的にニュース自体を最新にリフレッシュ（サイネージ放置対策）
+        setInterval(loadNews, REFRESH_INTERVAL);
+    </script>
+</body>
+</html>
