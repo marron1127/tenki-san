@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>愛媛ニュースサイネージ・完全自動版</title>
     <style>
-        /* デザイン設定（前回の淡いオレンジを継承） */
+        /* デザイン設定 */
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
@@ -22,37 +22,72 @@
             position: absolute; top: 30px; right: 50px; text-align: right; font-weight: bold;
             background: rgba(255, 255, 255, 0.4); color: #d84315; padding: 10px 25px; border-radius: 15px;
             backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 20;
         }
         #clock-time { font-size: 3.5rem; margin: 0; line-height: 1; }
-        #clock-date { font-size: 1.2rem; margin: 0; opacity: 0.8; }
+        #clock-date { font-size: 1.2rem; margin: 0; opacity: 0.8; margin-top: 5px; }
 
         .container { display: flex; flex-direction: column; justify-content: center; height: 100vh; padding-left: 8%; width: 70%; }
         .header-label { font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 10px; color: #e65100; font-weight: bold; }
         
-        #news-display { transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        .category { display: inline-block; background: #e65100; color: #fff; padding: 5px 20px; border-radius: 3px; font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; }
-        .title { font-size: 4rem; line-height: 1.3; font-weight: 900; color: #212121; text-shadow: 1px 1px 10px rgba(255,255,255,0.8); min-height: 250px; }
+        /* ニュース表示エリア */
+        #news-display { 
+            transition: opacity 0.6s ease, transform 0.6s ease; 
+            opacity: 1;
+            transform: translateX(0);
+        }
+        #news-display.fade-out { 
+            opacity: 0; 
+            transform: translateX(-20px); 
+        }
 
+        .category { display: inline-block; background: #e65100; color: #fff; padding: 5px 20px; border-radius: 3px; font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; }
+        .title { font-size: 4rem; line-height: 1.4; font-weight: 900; color: #212121; text-shadow: 1px 1px 10px rgba(255,255,255,0.8); min-height: 250px; }
+
+        /* 元々ある右下のみかん画像 */
         .mican-box {
             position: absolute; bottom: 80px; right: 5%; width: 350px; height: 350px;
-            background-image: url('9069ebe9cc7796dbb4ac63922b74551c.png');
+            background-image: url('ダーク.png');
             background-size: contain; background-repeat: no-repeat; background-position: bottom right;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); z-index: 10;
         }
 
+        /* ＝★＝ 2つ目の画像を大きくし、右に寄せました ＝★＝ */
+        .second-image-box {
+            position: absolute; 
+            bottom: 80px;              /* 下からの位置（みかん画像と揃えています） */
+            right: calc(5% + 360px);   /* みかん画像のすぐ左隣にぴったり配置 */
+            width: 350px;              /* 幅を350pxに拡大（みかんと同サイズ） */
+            height: 350px;             /* 高さを350pxに拡大 */
+            background-image: url('みきゃん２.png'); /* ←【53行目】ここにURLをペースト */
+            background-size: contain; 
+            background-repeat: no-repeat; 
+            background-position: bottom right;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); 
+            z-index: 10;
+        }
+
+        /* テロップ部分 */
         .ticker-wrap {
             position: absolute; bottom: 0; width: 100%; height: 60px;
-            background: rgba(230, 81, 0, 0.8); overflow: hidden; white-space: nowrap; display: flex; align-items: center;
+            background: rgba(230, 81, 0, 0.9); overflow: hidden; display: flex;
         }
-        .ticker { display: inline-block; padding-right: 100%; animation: ticker 30s linear infinite; font-size: 1.5rem; font-weight: bold; color: #fff; }
-        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-        .fade-out { opacity: 0; transform: translateX(-30px); }
+        .ticker-content {
+            display: flex; white-space: nowrap; animation: ticker-loop 35s linear infinite;
+        }
+        .ticker-item {
+            font-size: 1.5rem; font-weight: bold; color: #fff; padding-right: 50px; line-height: 60px;
+        }
+        @keyframes ticker-loop {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
     </style>
 </head>
 <body>
 
     <div class="clock-container">
-        <p id="clock-time">00:00</p>
+        <p id="clock-time">--:--</p>
         <p id="clock-date">----.--.-- ---</p>
     </div>
 
@@ -66,28 +101,33 @@
 
     <div class="mican-box"></div>
 
+    <div class="second-image-box"></div>
+
     <div class="ticker-wrap">
-        <div class="ticker" id="ticker-text">
-            🍊 おいでんかな、愛媛へ。道後温泉、しまなみ海道、石鎚山…愛媛の魅力をお届けしています。
+        <div class="ticker-content">
+            <div class="ticker-item">🍊 おいでんかな、愛媛へ。道後温泉、しまなみ海道、石鎚山…愛媛の魅力をお届けしています。</div>
+            <div class="ticker-item">🍊 おいでんかな、愛媛へ。道後温泉、しまなみ海道、石鎚山…愛媛の魅力をお届けしています。</div>
         </div>
     </div>
 
     <script>
         let newsArticles = [];
         let currentIndex = 0;
+        let rotationInterval = null;
 
-        // 📰 Googleニュース（愛媛）のRSSをJSONに変換して取得する
         async function fetchNews() {
             const RSS_URL = 'https://news.google.com/rss/search?q=愛媛&hl=ja&gl=JP&ceid=JP:ja';
-            // RSSをJSONに変換する公開プロキシサービスを利用
             const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
 
             try {
                 const response = await fetch(API_URL);
                 const data = await response.json();
-                if (data.status === 'ok') {
+                if (data.status === 'ok' && data.items.length > 0) {
                     newsArticles = data.items;
-                    updateDisplay();
+                    if (!rotationInterval) {
+                        updateDisplay();
+                        rotationInterval = setInterval(updateDisplay, 10000);
+                    }
                 }
             } catch (error) {
                 document.getElementById('title').textContent = "ニュースの取得に失敗しました。";
@@ -105,35 +145,32 @@
                 const item = newsArticles[currentIndex];
                 const titleEl = document.getElementById('title');
                 
-                // ニュースタイトルを表示（出典元を消す処理などを入れると綺麗です）
-                titleEl.textContent = item.title.split(' - ')[0]; 
+                let cleanTitle = item.title.split(' - ')[0]; 
+                titleEl.textContent = cleanTitle;
 
-                // 文字サイズ調整
-                titleEl.style.fontSize = titleEl.textContent.length > 35 ? "3rem" : "4rem";
+                titleEl.style.fontSize = cleanTitle.length > 35 ? "2.8rem" : "4rem";
 
                 display.classList.remove('fade-out');
                 currentIndex = (currentIndex + 1) % newsArticles.length;
-            }, 800);
+            }, 600); 
         }
 
         function updateClock() {
             const now = new Date();
             const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            
             document.getElementById('clock-time').textContent = 
                 `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
             document.getElementById('clock-date').textContent = 
-                `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()} ${days[now.getDay()]}`;
+                `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${days[now.getDay()]}`;
         }
 
-        // 1時間に一度、最新ニュースを再取得
         setInterval(fetchNews, 3600000);
-        // 10秒ごとに表示を切り替え
-        setInterval(updateDisplay, 10000);
         setInterval(updateClock, 1000);
 
-        // 初回起動
-        fetchNews();
         updateClock();
+        fetchNews();
     </script>
 </body>
 </html>
