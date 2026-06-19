@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学校デジタルサイネージ - 今日の学習</title>
+    <title>学校デジタルサイネージ - コマンド搭載版</title>
     <style>
+        /* 全体のリセットと固定設定 */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -14,18 +15,19 @@
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             background-color: #f4f7f6;
             color: #333;
-            overflow: hidden;
+            overflow: hidden; /* スクロールバーを絶対に隠す */
             width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            cursor: pointer; /* クリックできることを表すカーソル */
         }
 
-        /* ヘッダー */
+        /* ヘッダー（日付と時計） */
         header {
             background-color: #34495e;
             color: white;
-            padding: 20px 40px;
+            padding: 15px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -33,186 +35,357 @@
             font-weight: bold;
         }
 
-        /* メインレイアウト */
+        /* テストモード中の表示灯 */
+        #test-indicator {
+            font-size: 1.2rem;
+            background-color: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            margin-left: 15px;
+            display: none;
+        }
+
+        /* メインレイアウト（左右2カラム） */
         main {
             flex: 1;
             display: flex;
-            padding: 30px;
-            gap: 30px;
-            height: calc(100vh - 100px);
+            padding: 25px;
+            gap: 25px;
+            height: calc(100vh - 80px);
         }
 
         /* 各カードの共通スタイル */
         .card {
             flex: 1;
             background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-radius: 24px;
+            padding: 30px 40px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.06);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
             text-align: center;
+            overflow: hidden;
         }
 
-        /* カードの見出し */
         .card h2 {
-            font-size: 2.5rem;
+            font-size: 2.4rem;
             width: 100%;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            padding-bottom: 12px;
             font-weight: bold;
         }
 
-        /* 英単語カードのテーマカラー（オレンジ系） */
         .english-card h2 {
             color: #e67e22;
             border-bottom: 5px solid #e67e22;
         }
 
-        /* 漢字カードのテーマカラー（緑系） */
         .kanji-card h2 {
             color: #27ae60;
             border-bottom: 5px solid #27ae60;
         }
 
-        /* メインの大きな文字（単語や漢字） */
-        .main-word {
-            font-size: 6.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-            word-break: break-all;
+        /* パーツを中央に集める枠（左右共通） */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: 12px;
         }
 
-        /* 意味や読み方のスタイル */
+        /* 英語単語スタイル */
+        .english-word {
+            font-family: 'Trebuchet MS', Arial, 'Helvetica Neue', sans-serif;
+            font-size: 5.5vw;
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+            width: 100%;
+            letter-spacing: 0.02em;
+            text-transform: lowercase;
+            line-height: 1.1;
+        }
+
+        /* 漢字単語用 */
+        .kanji-word {
+            font-size: 5.5vw;
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+            width: 100%;
+            letter-spacing: 0.05em;
+            line-height: 1.1;
+        }
+
+        /* 英語の読み方用スタイル */
+        .word-pronunciation {
+            font-size: 1.8rem;
+            color: #e67e22;
+            font-weight: bold;
+            background-color: #fdf6f0;
+            padding: 4px 20px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        /* 意味や解説のスタイル */
         .sub-info {
-            font-size: 2.8rem;
-            color: #555;
+            font-size: 2.1rem;
+            color: #444;
             line-height: 1.5;
-            background-color: #f9f9f9;
+            background-color: #f8f9fa;
             width: 100%;
             padding: 20px;
-            border-radius: 10px;
-            min-height: 150px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            height: 100%;
+            min-height: 150px;
+            max-height: 210px;
         }
 
         .example-sentence {
-            font-size: 1.8rem;
+            font-size: 1.7rem;
             color: #7f8c8d;
-            margin-top: 10px;
+            margin-top: 8px;
             font-style: italic;
+            letter-spacing: 0.03em;
         }
     </style>
 </head>
 <body>
 
-    <!-- ヘッダー（日付と時計） -->
     <header>
-        <div id="date-display">2026年00月00日 (曜日)</div>
+        <div style="display: flex; align-items: center;">
+            <div id="date-display">2026年00月00日 (曜日)</div>
+            <div id="test-indicator">確認モード（Escキーで解除）</div>
+        </div>
         <div id="clock">00:00:00</div>
     </header>
 
-    <!-- メインコンテンツ -->
     <main>
-        <!-- 今日の英単語 -->
         <section class="card english-card">
-            <h2>🔤 今日の英単語</h2>
-            <div class="main-word" id="en-word">Loading...</div>
-            <div class="sub-info" id="en-meaning">
-                <!-- ここに意味と例文が入る -->
+            <h2>🔤 今日の英語</h2>
+            <div class="content-area">
+                <div class="english-word" id="en-word">Loading...</div>
+                <div class="word-pronunciation" id="en-pron">Loading...</div>
+                <div class="sub-info" id="en-meaning"></div>
             </div>
         </section>
 
-        <!-- 今日の漢字 -->
         <section class="card kanji-card">
             <h2>🖌️ 今日の漢字</h2>
-            <div class="main-word" id="kj-word">Loading...</div>
-            <div class="sub-info" id="kj-meaning">
-                <!-- ここに読みと意味が入る -->
+            <div class="content-area">
+                <div class="kanji-word" id="kj-word">Loading...</div>
+                <div style="height: 28px;"></div>
+                <div class="sub-info" id="kj-meaning"></div>
             </div>
         </section>
     </main>
 
     <script>
-        // --- ★ここに1週間分（1〜7日）のデータを登録します ★ ---
-        // ※ 1ヶ月分にする場合は、要素を31個まで増やせばOKです！
+        // --- 31日分のフルデータ ---
         const dailyData = {
             1: {
-                english: { word: "achieve", meaning: "【動】～を達成する、成し遂げる", example: "Achieve a goal（目標を達成する）" },
-                kanji: { word: "刷新", meaning: "【音読み】さっしん<br>【意味】悪い部分をすべて新しくすること。" }
+                english: { word: "consequence", pronunciation: "発音：カンセクエンス", meaning: "【名】（必然的な）結果、重大性", example: "Accept the consequences（結果を受け入れる）" },
+                kanji: { word: "恣意的", meaning: "【音読み】しいてき<br>【意味】論理的な必然性がなく、気ままな様子。" }
             },
             2: {
-                english: { word: "benefit", meaning: "【名】利益、恩恵<br>【動】～の利益になる", example: "Mutual benefit（互いの利益）" },
-                kanji: { word: "情緒", meaning: "【音読み】じょうちょ / じょうしょ<br>【意味】折に触れて起こる様々な感情。味わい。" }
+                english: { word: "substitute", pronunciation: "発音：サブスティテュート", meaning: "【動】～を代わりに用いる 【名】代用品", example: "Substitute A for B（Bの代わりにAを使う）" },
+                kanji: { word: "含蓄", meaning: "【音読み】がんちく<br>【意味】言葉の表面に出ない、深い意味や味わい。" }
             },
             3: {
-                english: { word: "creative", meaning: "【形】創造的な、独創的な", example: "Creative thinking（創造的な思考）" },
-                kanji: { word: "勾配", meaning: "【音読み】こうばい<br>【意味】傾き。坂の傾斜の度合い。" }
+                english: { word: "superficial", pronunciation: "発音：スーパーフィシャル", meaning: "【形】表面的な、浅薄な（うわっつらの）", example: "Superficial knowledge（うわっつらの知識）" },
+                kanji: { word: "看過", meaning: "【音読み】かんか<br>【意味】見逃すこと。見て見ぬふりをすること。" }
             },
             4: {
-                english: { word: "diligent", meaning: "【形】勤勉な、熱心な", example: "A diligent student（勤勉な学生）" },
-                kanji: { word: "捗進", meaning: "【音読み】ちょくしん<br>【意味】物事がはかどり進むこと。" }
+                english: { word: "negotiate", pronunciation: "発音：ネゴシエイト", meaning: "【動】交渉する、取り決める", example: "Negotiate a contract（契約を交渉する）" },
+                kanji: { word: "示唆", meaning: "【音読み】しさ<br>【意味】それとなく知らせること。ほのめかすこと。" }
             },
             5: {
-                english: { word: "essential", meaning: "【形】不可欠な、極めて重要な", example: "Essential for health（健康に不可欠な）" },
-                kanji: { word: "一瞥", meaning: "【音読み】いちべつ<br>【意味】ちらっと見ること。" }
+                english: { word: "inevitable", pronunciation: "発音：イネヴィタブル", meaning: "【形】避けられない、必然的な", example: "An inevitable result（避けられない結果）" },
+                kanji: { word: "陳腐化", meaning: "【音読み】ちんぷか<br>【意味】古くさくなって魅力や価値がなくなること。" }
             },
             6: {
-                english: { word: "flexible", meaning: "【形】柔軟な、曲げやすい", example: "Flexible working hours（フレックスタイム）" },
-                kanji: { word: "婉曲", meaning: "【音読み】えんきょく<br>【意味】遠回しに表現すること。" }
+                english: { word: "simultaneous", pronunciation: "発音：サイマルテイニアス", meaning: "【形】同時の、同時に起こる", example: "Simultaneous translation（同時通訳）" },
+                kanji: { word: "真摯", meaning: "【音読み】しんし<br>【意味】まじめで熱心なこと。ひたむきな様子。" }
             },
             7: {
-                english: { word: "generous", meaning: "【形】気前のよい、寛大な", example: "A generous person（寛大な人）" },
-                kanji: { word: "含蓄", meaning: "【音読み】がんちく<br>【意味】言葉などの表面に出ない深い意味。" }
+                english: { word: "hypothesis", pronunciation: "発音：ハイポセシス", meaning: "【名】仮説、前提", example: "Test a hypothesis（仮説を検証する）" },
+                kanji: { word: "普遍的", meaning: "【音読み】ふへんてき<br>【意味】すべてのものに共通して当てはまる様子。" }
+            },
+            8: {
+                english: { word: "alternative", pronunciation: "発音：オルターナティヴ", meaning: "【名】代わりのもの 【形】二者択一の", example: "An alternative plan（代替案）" },
+                kanji: { word: "逆説", meaning: "【音読み】ぎゃくせつ<br>【意味】一見矛盾しているが、実は真理を突いている説。" }
+            },
+            9: {
+                english: { word: "comprehend", pronunciation: "発音：コンプリヘンド", meaning: "【動】～を（十分に）理解する、内包する", example: "Comprehend the meaning（意味を理解する）" },
+                kanji: { word: "具体", meaning: "【音読み】ぐたい<br>【意味】人間の感覚で捉えられる、はっきりした形があること。" }
+            },
+            10: {
+                english: { word: "contradict", pronunciation: "発音：コントラディクト", meaning: "【動】～と矛盾する、～に反論する", example: "Contradict each other（互いに矛盾する）" },
+                kanji: { word: "抽象", meaning: "【音読み】ちゅうしょう<br>【意味】共通する性質を抜き出し、一般化すること。" }
+            },
+            11: {
+                english: { word: "contribute", pronunciation: "発音：コントリビュート", meaning: "【動】貢献する、寄付する、一因となる", example: "Contribute to society（社会に貢献する）" },
+                kanji: { word: "アイロニー", meaning: "【言葉】あいろにー<br>【意味】皮肉、反語。意図とは逆の表現で本質を突くこと。" }
+            },
+            12: {
+                english: { word: "distinguish", pronunciation: "発音：ディスティングウィッシュ", meaning: "【動】～を見分ける、区別する", example: "Distinguish right from wrong（善悪を区別する）" },
+                kanji: { word: "客観", meaning: "【音読み】きゃっかん<br>【意味】個人の感情を交えず、第三者的な視点で見る様子。" }
+            },
+            13: {
+                english: { word: "foster", pronunciation: "発音：フォスター", meaning: "【動】～を促進する、育成する、養育する", example: "Foster international relations（国際関係を育む）" },
+                kanji: { word: "主観", meaning: "【音読み】しゅかん<br>【意味】自分だけの視点や考え方。自分独自の感じ方。" }
+            },
+            14: {
+                english: { word: "imply", pronunciation: "発音：インプライ", meaning: "【動】～を（暗に）意味する、ほのめかす", example: "Silence implies consent（沈黙は同意を意味する）" },
+                kanji: { word: "楽観的", meaning: "【音読み】らっかんてき<br>【意味】物事を良い方向に考え、心配しない様子。" }
+            },
+            15: {
+                english: { word: "prosperous", pronunciation: "発音：プロスペラス", meaning: "【形】繁栄している、裕福な、成功した", example: "A prosperous country（繁栄している国）" },
+                kanji: { word: "悲観的", meaning: "【音読み】ひかんてき<br>【意味】物事を悪い方向に考え、失望する様子。" }
+            },
+            16: {
+                english: { word: "reluctant", pronunciation: "発音：リラクタント", meaning: "【形】気が進まない、嫌がる", example: "Be reluctant to answer（答えるのを嫌がる）" },
+                kanji: { word: "葛藤", meaning: "【音読み】かっとう<br>【意味】心の中で２つの感情がもつれ、迷い悩むこと。" }
+            },
+            17: {
+                english: { word: "simplicity", pronunciation: "発音：シンプリシティ", meaning: "【名】簡単、平易、単純、飾り気のないこと", example: "The simplicity of design（デザインの簡素さ）" },
+                kanji: { word: "洗練", meaning: "【音読み】せんれん<br>【意味】あか抜けた、磨き上げられた素晴らしい状態にすること。" }
+            },
+            18: {
+                english: { word: "transform", pronunciation: "発音：トランスフォーム", meaning: "【動】～を変形させる、一変させる", example: "Transform energy into light（エネルギーを光に変える）" },
+                kanji: { word: "混沌", meaning: "【音読み】こんとん<br>【意味】区別がなく入り混じって、まとまりがない様子。" }
+            },
+            19: {
+                english: { word: "vulnerable", pronunciation: "発音：ヴァルネラブル", meaning: "【形】傷つきやすい、脆弱な、弱い", example: "Vulnerable to attack（攻撃に弱い）" },
+                kanji: { word: "秩序", meaning: "【音読み】ちつじょ<br>【意味】正しい順序や、ルールが保たれている状態。" }
+            },
+            20: {
+                english: { word: "accurate", pronunciation: "発音：アキュレイト", meaning: "【形】正確な、的確な、精密な", example: "Accurate information（正確な情報）" },
+                kanji: { word: "不可欠", meaning: "【音読み】ふかけつ<br>【意味】絶対に欠かすことができないこと。" }
+            },
+            21: {
+                english: { word: "coincide", pronunciation: "発音：コインサイド", meaning: "【動】同時に起きる、一致する", example: "Coincide with my opinion（私の意見と一致する）" },
+                kanji: { word: "象徴", meaning: "【音読み】しょうちょう<br>【意味】形のない抽象的なものを、具体的な形で表すこと。" }
+            },
+            22: {
+                english: { word: "dilemma", pronunciation: "発音：ディレマ", meaning: "【名】ジレンマ、板挟み、窮地", example: "In a difficult dilemma（深刻な板挟みになって）" },
+                kanji: { word: "端的", meaning: "【音読み】たんてき<br>【意味】はっきりと、手っ取り早く核心を突く様子。" }
+            },
+            23: {
+                english: { word: "exaggerate", pronunciation: "発音：エグザジェレイト", meaning: "【動】～を誇張する、大げさに言う", example: "Exaggerate the danger（危険を大げさに言う）" },
+                kanji: { word: "変貌", meaning: "【音読み】へんぼう<br>【意味】姿や様子が、以前とはすっかり変わること。" }
+            },
+            24: {
+                english: { word: "fluctuate", pronunciation: "発音：フラクチュエイト", meaning: "【動】変動する、上下する、動揺する", example: "Prices fluctuate daily（物価は日々変動する）" },
+                kanji: { word: "余白", meaning: "【訓読み】よはく<br>【意味】何も書いていない残りの白い部分。ゆとり。" }
+            },
+            25: {
+                english: { word: "genuine", pronunciation: "発音：ジェニュイン", meaning: "【形】本物の、純粋な、心からの", example: "Genuine leather（本革）" },
+                kanji: { word: "典型", meaning: "【音読み】てんけい<br>【意味】その特徴を最もよく表している代表的な例。" }
+            },
+            26: {
+                english: { word: "inhibit", pronunciation: "発音：インヒビット", meaning: "【動】～を抑制する、妨げる、感情を抑える", example: "Inhibit growth（成長を抑制する）" },
+                kanji: { word: "契機", meaning: "【音読み】けいき<br>【意味】物事が変化するきっかけ、良いタイミング。" }
+            },
+            27: {
+                english: { word: "magnificent", pronunciation: "発音：マグニフィセント", meaning: "【形】壮大な、見事な、素晴らしい", example: "A magnificent view（壮大な景色）" },
+                kanji: { word: "依拠", meaning: "【音読み】いきょ<br>【意味】それを根本的なよりどころ（支え）にすること。" }
+            },
+            28: {
+                english: { word: "obvious", pronunciation: "発音：オブヴィアス", meaning: "【形】明白な、明らかな、分かりやすい", example: "An obvious mistake（明らかな間違い）" },
+                kanji: { word: "形骸化", meaning: "【音読み】けいがいか<br>【意味】誕生時の意味が失われ、形式（形）だけが残ること。" }
+            },
+            29: {
+                english: { word: "prejudice", pronunciation: "発音：プレジュディス", meaning: "【名】偏見、先入観 【動】～に偏見を抱かせる", example: "Without prejudice（偏見なしに）" },
+                kanji: { word: "固執", meaning: "【音読み】こしつ<br>【意味】自分の意見を絶対に譲らず、強くこだわり続けること。" }
+            },
+            30: {
+                english: { word: "sophisticated", pronunciation: "発音：ソフィスティケイトゥド", meaning: "【形】洗練された、高度な、教養のある", example: "Sophisticated system（高度なシステム）" },
+                kanji: { word: "収斂", meaning: "【音読み】しゅうれん<br>【意味】バラバラだった多くの要素が一つの点に集まること。" }
+            },
+            31: {
+                english: { word: "unanimous", pronunciation: "発音：ユナニマス", meaning: "【形】満場一致の、全員賛成の", example: "A unanimous decision（満場一致の決定）" },
+                kanji: { word: "パラダイム", meaning: "【言葉】ぱらだいむ<br>【意味】ある時代における、物事の標準的な考え方や枠組み。" }
             }
         };
 
-        // 表示を更新する関数
+        let isTestMode = false;
+        let virtualDate = 1;
+
         function updateSignage() {
             const now = new Date();
             
-            // 1. 時計と日付の更新
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const date = now.getDate();
-            const dayList = ["日", "月", "火", "水", "木", "金", "土"];
-            const day = dayList[now.getDay()];
-            
+            // 時計の更新
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('date-display').textContent = `${year}年${month}月${date}日 (${day})`;
             document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
 
-            // 2. 日替わりコンテンツの更新
-            // 今回は「（今日の日付 ÷ 7）の余り + 1」で1〜7のルートを自動ループさせます
-            // ※1ヶ月分(31日分)データを作る場合は「const contentIndex = date;」にするだけでOK！
-            const contentIndex = ((date - 1) % 7) + 1; 
-            const todayContent = dailyData[contentIndex];
+            let targetDate;
+
+            if (isTestMode) {
+                document.getElementById('date-display').textContent = `【テスト表示】 ${virtualDate}日のデータ`;
+                document.getElementById('test-indicator').style.display = "inline-block";
+                targetDate = virtualDate;
+            } else {
+                const year = now.getFullYear();
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+                const dayList = ["日", "月", "火", "水", "木", "金", "土"];
+                document.getElementById('date-display').textContent = `${year}年${month}月${date}日 (${dayList[now.getDay()]})`;
+                document.getElementById('test-indicator').style.display = "none";
+                targetDate = date;
+            }
+
+            // コンテンツの反映
+            const todayContent = dailyData[targetDate];
 
             if (todayContent) {
-                // 英単語の反映
                 document.getElementById('en-word').textContent = todayContent.english.word;
+                document.getElementById('en-pron').textContent = todayContent.english.pronunciation;
                 document.getElementById('en-meaning').innerHTML = `
                     <div>${todayContent.english.meaning}</div>
                     <div class="example-sentence">${todayContent.english.example}</div>
                 `;
-                // 漢字の反映
                 document.getElementById('kj-word').textContent = todayContent.kanji.word;
                 document.getElementById('kj-meaning').innerHTML = `<div>${todayContent.kanji.meaning}</div>`;
             }
         }
 
-        // 1秒ごとに時計とコンテンツをチェック
+        // 画面クリックイベント（確認モード突入＆進行）
+        document.body.addEventListener('click', () => {
+            if (!isTestMode) {
+                isTestMode = true;
+                virtualDate = 1;
+            } else {
+                virtualDate++;
+                if (virtualDate > 31) {
+                    virtualDate = 1;
+                }
+            }
+            updateSignage();
+        });
+
+        // ★新設：キーボードの「Escキー」を押すと確認モードを解除
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' || event.key === 'Esc') {
+                isTestMode = false; // テストモードをオフ
+                updateSignage();    // 今日の日付に戻す
+            }
+        });
+
         setInterval(updateSignage, 1000);
-        updateSignage(); // 起動時に実行
+        updateSignage();
     </script>
 </body>
 </html>
