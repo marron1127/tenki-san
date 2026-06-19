@@ -2,15 +2,19 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>東予3市 Dynamic Weather</title>
+    <title>東予3市 Dynamic Weather - Summer Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #f0f8ff;
-            --accent-color: #333;
+            --bg-color: #e0f2f1; /* 夏らしい爽やかな薄いミントブルー */
+            --text-main: #1a1a1a; /* コントラストを上げるためにより黒く */
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Noto Sans JP', 'Noto Color Emoji', 'Helvetica Neue', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -19,30 +23,32 @@
             margin: 0;
             background: var(--bg-color);
             transition: background 1s ease;
+            overflow: hidden; /* サイネージ用に見切れ・スクロールを防止 */
         }
 
-        /* 日時表示エリアをさらに巨大化 */
+        /* 日時表示エリア（秒なし・超高コントラスト） */
         #current-datetime {
-            font-size: 3.5rem; /* 2.2rem -> 3.5rem に大幅アップ */
-            font-weight: bold;
-            color: #333;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(5px);
-            padding: 20px 60px; /* 横の余白も広げてゆったりと */
-            border-radius: 60px;
-            margin-top: 20px;
-            margin-bottom: 10px; /* カードとの間の余白 */
-            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+            font-size: 4.2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 20px 80px;
+            border-radius: 80px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             animation: fadeIn 1s forwards ease-out;
             text-align: center;
+            letter-spacing: 1px;
         }
 
         /* コンテナの幅 */
         .weather-container {
             display: flex;
-            gap: 30px;
-            padding: 20px 40px 40px 40px;
-            max-width: 1400px;
+            gap: 35px;
+            padding: 10px 50px 40px 50px;
+            max-width: 1600px;
             width: 100%;
             justify-content: center;
             box-sizing: border-box;
@@ -51,18 +57,19 @@
 
         /* カードのスタイル */
         .weather-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
             padding: 50px 40px;
-            border-radius: 40px;
+            border-radius: 45px;
             text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
             transform: translateY(50px);
             opacity: 0;
             animation: floatIn 1s forwards ease-out;
             flex: 1;
-            min-width: 320px;
+            min-width: 340px;
             box-sizing: border-box;
+            border: 2px solid rgba(255,255,255,0.5);
         }
 
         @keyframes fadeIn {
@@ -78,37 +85,69 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* アイコン */
-        .icon {
-            font-size: 110px;
-            display: inline-block;
-            margin-bottom: 15px;
+        /* 都市名のバッジ */
+        .location { 
+            font-size: 1.6rem;
+            background: #1a1a1a;
+            color: #fff; 
+            padding: 10px 30px; 
+            border-radius: 30px; 
+            display: inline-block; 
+            font-weight: 700;
+            letter-spacing: 1px;
         }
 
-        .bounce { animation: bounce 2s infinite ease-in-out; }
+        /* アイコン（都市名と被らないようマージンを調整、動きを少なめに） */
+        .icon {
+            font-size: 130px;
+            display: inline-block;
+            margin-top: 25px; /* 上の都市名バッジとの隙間をしっかり確保 */
+            margin-bottom: 15px;
+            line-height: 1;
+        }
+
+        /* バウンスの動きを半分（-10px）にし、3秒かけてゆったり動かす */
+        .bounce { animation: bounce 3s infinite ease-in-out; }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+            50% { transform: translateY(-10px); } 
         }
 
-        .spin { animation: spin 10s infinite linear; }
+        /* 回転も12秒かけて超ゆっくり回す */
+        .spin { animation: spin 12s infinite linear; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* 文字サイズ */
-        .temp { font-size: 5rem; font-weight: bold; color: var(--accent-color); margin: 15px 0; }
-        .status { font-size: 1.8rem; color: #666; font-weight: bold; }
-        .location { font-size: 1.4rem; background: #333; color: #fff; padding: 8px 24px; border-radius: 25px; display: inline-block; }
-        .last-update { font-size: 0.95rem; color: #999; margin-top: 25px; }
+        .temp { 
+            font-size: 5.5rem; 
+            font-weight: 900; 
+            color: var(--text-main); 
+            margin: 10px 0; 
+            letter-spacing: -2px;
+        }
+        
+        .status { 
+            font-size: 2.2rem; 
+            color: #444; 
+            font-weight: 700; 
+        }
+        
+        .last-update { 
+            font-size: 1rem; 
+            color: #777; 
+            margin-top: 25px; 
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
 
-    <div id="current-datetime">----年--月--日 (水) --:--:--</div>
+    <div id="current-datetime">----年--月--日 (水) --:--</div>
 
     <div class="weather-container">
         <div class="weather-card" id="saijo">
             <div class="location">西条市</div>
-            <div class="icon">⏳</div>
+            <div><span class="icon">⏳</span></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -116,7 +155,7 @@
 
         <div class="weather-card" id="niihama">
             <div class="location">新居浜市</div>
-            <div class="icon">⏳</div>
+            <div><span class="icon">⏳</span></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -124,7 +163,7 @@
 
         <div class="weather-card" id="shikokuchuo">
             <div class="location">四国中央市</div>
-            <div class="icon">⏳</div>
+            <div><span class="icon">⏳</span></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -146,12 +185,12 @@
             const dayList = ['日', '月', '火', '水', '木', '金', '土'];
             const day = dayList[now.getDay()];
             
+            // 時・分のみ（秒は取得しない）
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
 
             document.getElementById('current-datetime').innerText = 
-                `${year}年${month}月${date}日 (${day}) ${hours}:${minutes}:${seconds}`;
+                `${year}年${month}月${date}日 (${day}) ${hours}:${minutes}`;
         }
 
         async function updateWeather() {
@@ -170,14 +209,14 @@
                     const { temperature, weathercode } = weatherData.current_weather;
                     const city = CITIES[index];
                     
-                    let info = { text: "不明", icon: "❓", color: "#f0f8ff", animate: "" };
+                    let info = { text: "不明", icon: "❓", color: "#e0f2f1", animate: "" };
                     
                     if (weathercode === 0) {
-                        info = { text: "快晴", icon: "☀️", color: "#fff9e6", animate: "spin" };
+                        info = { text: "快晴", icon: "☀️", color: "#fff3e0", animate: "spin" };
                     } else if (weathercode <= 3) {
-                        info = { text: "晴れ・曇り", icon: "🌤", color: "#e6f7ff", animate: "bounce" };
+                        info = { text: "晴れ・曇り", icon: "🌤", color: "#e1f5fe", animate: "bounce" };
                     } else if (weathercode >= 61) {
-                        info = { text: "雨", icon: "☔", color: "#e1e1f5", animate: "bounce" };
+                        info = { text: "雨", icon: "☔", color: "#e8eaf6", animate: "bounce" };
                     }
 
                     const hex = info.color.replace('#', '');
@@ -193,7 +232,7 @@
                     
                     card.querySelector('.status').innerText = info.text;
                     card.querySelector('.temp').innerText = `${temperature}°C`;
-                    card.querySelector('.last-update').innerText = `取得時刻: ${new Date().toLocaleTimeString()}`;
+                    card.querySelector('.last-update').innerText = `取得時刻: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                 });
 
                 const avgR = Math.round(totalColorR / CITIES.length);
@@ -207,7 +246,7 @@
         }
 
         updateClock();
-        setInterval(updateClock, 1000);
+        setInterval(updateClock, 1000); // 1秒ごとにチェック（分の切り替わりをスムーズにするため）
 
         updateWeather();
         setInterval(updateWeather, 3600000);
