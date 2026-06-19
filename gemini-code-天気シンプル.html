@@ -2,19 +2,19 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>東予3市 Dynamic Weather - Summer Edition</title>
+    <title>東予3市 Dynamic Weather - High Visibility Edition</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg-color: #e0f2f1; /* 夏らしい爽やかな薄いミントブルー */
-            --text-main: #1a1a1a; /* コントラストを上げるためにより黒く */
+            --text-main: #1a1a1a; /* 超高コントラストな黒 */
         }
 
         body {
-            font-family: 'Noto Sans JP', 'Noto Color Emoji', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -23,7 +23,7 @@
             margin: 0;
             background: var(--bg-color);
             transition: background 1s ease;
-            overflow: hidden; /* サイネージ用に見切れ・スクロールを防止 */
+            overflow: hidden; /* スクロールバーを強制非表示 */
         }
 
         /* 日時表示エリア（秒なし・超高コントラスト） */
@@ -97,24 +97,25 @@
             letter-spacing: 1px;
         }
 
-        /* アイコン（都市名と被らないようマージンを調整、動きを少なめに） */
-        .icon {
-            font-size: 130px;
-            display: inline-block;
-            margin-top: 25px; /* 上の都市名バッジとの隙間をしっかり確保 */
-            margin-bottom: 15px;
-            line-height: 1;
+        /* アイコン表示エリア（絶対に被らないよう上の余白を多めに） */
+        .icon-box {
+            width: 140px;
+            height: 140px;
+            margin: 25px auto 15px auto; /* 上に25pxのガッツリ隙間を確保 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* バウンスの動きを半分（-10px）にし、3秒かけてゆったり動かす */
+        /* アニメーション控えめ（バウンス幅をさらに小さくマイルドに） */
         .bounce { animation: bounce 3s infinite ease-in-out; }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); } 
+            50% { transform: translateY(-8px); } /* 8pxだけゆったり動かす */
         }
 
-        /* 回転も12秒かけて超ゆっくり回す */
-        .spin { animation: spin 12s infinite linear; }
+        /* 回転も超ゆっくり（15秒かけて1周） */
+        .spin { animation: spin 15s infinite linear; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* 文字サイズ */
@@ -128,7 +129,7 @@
         
         .status { 
             font-size: 2.2rem; 
-            color: #444; 
+            color: #333; 
             font-weight: 700; 
         }
         
@@ -147,7 +148,7 @@
     <div class="weather-container">
         <div class="weather-card" id="saijo">
             <div class="location">西条市</div>
-            <div><span class="icon">⏳</span></div>
+            <div class="icon-box"></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -155,7 +156,7 @@
 
         <div class="weather-card" id="niihama">
             <div class="location">新居浜市</div>
-            <div><span class="icon">⏳</span></div>
+            <div class="icon-box"></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -163,7 +164,7 @@
 
         <div class="weather-card" id="shikokuchuo">
             <div class="location">四国中央市</div>
-            <div><span class="icon">⏳</span></div>
+            <div class="icon-box"></div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -177,6 +178,15 @@
             { id: 'shikokuchuo', lat: 33.98, lon: 133.54 }
         ];
 
+        // 絶対にバグらないSVGアイコンのデータ（夏らしくクッキリした色調）
+        const ICONS = {
+            loading: `<svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2.5" stroke-linecap="round" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`,
+            clear: `<svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+            cloudy: `<svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#0288d1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bounce"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41"/><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" fill="#fff" fill-opacity="0.8"/></svg>`,
+            rain: `<svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#3f51b5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bounce"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19l-1 3M12 19l-1 3M16 19l-1 3"/></svg>`,
+            unknown: `<svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>`
+        };
+
         function updateClock() {
             const now = new Date();
             const year = now.getFullYear();
@@ -185,13 +195,15 @@
             const dayList = ['日', '月', '火', '水', '木', '金', '土'];
             const day = dayList[now.getDay()];
             
-            // 時・分のみ（秒は取得しない）
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
 
             document.getElementById('current-datetime').innerText = 
                 `${year}年${month}月${date}日 (${day}) ${hours}:${minutes}`;
         }
+
+        // 初期状態でローディングアニメーションを表示
+        document.querySelectorAll('.icon-box').forEach(el => el.innerHTML = ICONS.loading);
 
         async function updateWeather() {
             try {
@@ -209,14 +221,14 @@
                     const { temperature, weathercode } = weatherData.current_weather;
                     const city = CITIES[index];
                     
-                    let info = { text: "不明", icon: "❓", color: "#e0f2f1", animate: "" };
+                    let info = { text: "不明", iconHtml: ICONS.unknown, color: "#e0f2f1" };
                     
                     if (weathercode === 0) {
-                        info = { text: "快晴", icon: "☀️", color: "#fff3e0", animate: "spin" };
+                        info = { text: "快晴", iconHtml: ICONS.clear, color: "#fff3e0" }; // 爽やかな薄オレンジ
                     } else if (weathercode <= 3) {
-                        info = { text: "晴れ・曇り", icon: "🌤", color: "#e1f5fe", animate: "bounce" };
+                        info = { text: "晴れ・曇り", iconHtml: ICONS.cloudy, color: "#e1f5fe" }; // 涼しいライトブルー
                     } else if (weathercode >= 61) {
-                        info = { text: "雨", icon: "☔", color: "#e8eaf6", animate: "bounce" };
+                        info = { text: "雨", iconHtml: ICONS.rain, color: "#e8eaf6" }; // すっきりした薄紫
                     }
 
                     const hex = info.color.replace('#', '');
@@ -226,9 +238,8 @@
 
                     const card = document.getElementById(city.id);
                     
-                    const iconEl = card.querySelector('.icon');
-                    iconEl.innerText = info.icon;
-                    iconEl.className = `icon ${info.animate}`;
+                    // アイコンボックスの中身をSVGコードに差し替え
+                    card.querySelector('.icon-box').innerHTML = info.iconHtml;
                     
                     card.querySelector('.status').innerText = info.text;
                     card.querySelector('.temp').innerText = `${temperature}°C`;
@@ -246,7 +257,7 @@
         }
 
         updateClock();
-        setInterval(updateClock, 1000); // 1秒ごとにチェック（分の切り替わりをスムーズにするため）
+        setInterval(updateClock, 1000);
 
         updateWeather();
         setInterval(updateWeather, 3600000);
