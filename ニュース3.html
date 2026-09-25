@@ -44,21 +44,16 @@
         .category { display: inline-block; background: #e65100; color: #fff; padding: 5px 20px; border-radius: 3px; font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; }
         .title { font-size: 4rem; line-height: 1.4; font-weight: 900; color: #212121; text-shadow: 1px 1px 10px rgba(255,255,255,0.8); min-height: 250px; }
 
-       
-        /* ＝★＝ 2つ目の画像を大きくし、右に寄せました ＝★＝ */
-        .second-image-box {
-            position: absolute; 
-            bottom: 80px;              /* 下からの位置（みかん画像と揃えています） */
-            right: calc(5% + 360px);   /* みかん画像のすぐ左隣にぴったり配置 */
-            width: 100px;              /* 幅を350pxに拡大（みかんと同サイズ） */
-            height: 100px;             /* 高さを350pxに拡大 */
-            background-image: url('mican.png'); /* ←【53行目】ここにURLをペースト */
-            background-size: contain; 
-            background-repeat: no-repeat; 
-            background-position: bottom right;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); 
-            z-index: 10;
+        /* 元々ある右下のみかん画像 */
+        .mican-box {
+            position: absolute; bottom: 80px; right: 5%; width: 100px; height: 100px;
+            background-image: url('dark.png');
+            background-size: contain; background-repeat: no-repeat; background-position: bottom right;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); z-index: 10;
         }
+
+
+      
 
         /* テロップ部分 */
         .ticker-wrap {
