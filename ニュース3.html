@@ -27,12 +27,7 @@
         #clock-time { font-size: 3.5rem; margin: 0; line-height: 1; }
         #clock-date { font-size: 1.2rem; margin: 0; opacity: 0.8; margin-top: 5px; }
 
-        /* ＝★＝ ニュースコンテナの優先度（z-index）を高くして常に手前に表示 ＝★＝ */
-        .container { 
-            display: flex; flex-direction: column; justify-content: center; height: 100vh; padding-left: 8%; width: 70%; 
-            position: relative;
-            z-index: 15; 
-        }
+        .container { display: flex; flex-direction: column; justify-content: center; height: 100vh; padding-left: 8%; width: 70%; }
         .header-label { font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 10px; color: #e65100; font-weight: bold; }
         
         /* ニュース表示エリア */
@@ -49,34 +44,33 @@
         .category { display: inline-block; background: #e65100; color: #fff; padding: 5px 20px; border-radius: 3px; font-size: 1.4rem; font-weight: bold; margin-bottom: 20px; }
         .title { font-size: 4rem; line-height: 1.4; font-weight: 900; color: #212121; text-shadow: 1px 1px 10px rgba(255,255,255,0.8); min-height: 250px; }
 
-        /* ＝★＝ 画像の z-index を下げて、文字より後ろ（奥側）に配置 ＝★＝ */
+        /* 元々ある右下のみかん画像 */
         .mican-box {
-            position: absolute; bottom: 80px; right: 5%; width: 350px; height: 350px;
+            position: absolute; bottom: 80px; right: 5%; width: 100px; height: 100px;
             background-image: url('dark.png');
             background-size: contain; background-repeat: no-repeat; background-position: bottom right;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); 
-            z-index: 5; /* 文字（15）より低い数字にして後ろに回す */
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); z-index: 10;
         }
 
+        /* ＝★＝ 2つ目の画像を大きくし、右に寄せました ＝★＝ */
         .second-image-box {
             position: absolute; 
-            bottom: 80px;             
-            right: calc(5% + 360px);    
-            width: 350px;              
-            height: 350px;             
-            background-image: url('mican.png'); 
+            bottom: 80px;              /* 下からの位置（みかん画像と揃えています） */
+            right: calc(5% + 360px);   /* みかん画像のすぐ左隣にぴったり配置 */
+            width: 100px;              /* 幅を350pxに拡大（みかんと同サイズ） */
+            height: 100px;             /* 高さを350pxに拡大 */
+            background-image: url('mican.png'); /* ←【53行目】ここにURLをペースト */
             background-size: contain; 
             background-repeat: no-repeat; 
             background-position: bottom right;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); 
-            z-index: 5; /* 文字（15）より低い数字にして後ろに回す */
+            z-index: 10;
         }
 
         /* テロップ部分 */
         .ticker-wrap {
             position: absolute; bottom: 0; width: 100%; height: 60px;
             background: rgba(230, 81, 0, 0.9); overflow: hidden; display: flex;
-            z-index: 20;
         }
         .ticker-content {
             display: flex; white-space: nowrap; animation: ticker-loop 35s linear infinite;
