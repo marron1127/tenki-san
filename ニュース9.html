@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>えひめニュースLIVE</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #101722;
+      color: white;
+      font-family: sans-serif;
+      overflow: hidden; /* サイネージでスクロールが出ないように固定 */
+    }
+
+    header {
+      background: #c83d25;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 { margin: 0; font-size: 28px; }
+    header span { font-size: 16px; font-weight: bold; letter-spacing: 1px; }
+
+    main {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background: #202b3a;
+      border-radius: 16px;
+      padding: 35px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .category { color: #ffb17b; font-weight: bold; font-size: 18px; margin-bottom: 8px; }
+
+    #headline {
+      font-size: clamp(24px, 4vw, 42px);
+      line-height: 1.4;
+      margin: 10px 0 20px 0;
+    }
+
+    #description {
+      color: #d4dce6;
+      line-height: 1.8;
+      font-size: 20px;
+    }
+
+    .progress {
+      height: 6px;
+      background: #435064;
+      margin-top: 30px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #bar {
+      height: 100%;
+      width: 0;
+      background: #ff7048;
+      transition: width 1s linear;
+    }
+
+    .footer-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      color: #9baac0;
+      font-size: 15px;
+    }
+
+    #status {
+      color: #85e89d;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🍊 EHIME NEWS</h1>
+    <span>● LIVE INFINITY</span>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div id="category" class="category">愛媛のニュース</div>
+      <h2 id="headline">ニュースを読み込んでいます...</h2>
+      <p id="description">しばらくお待ちください。</p>
+      
+      <div class="footer-info">
+        <span id="published"></span>
+        <span id="status">🟢 ライブ配信中</span>
+      </div>
+
+      <div class="progress"><div id="bar"></div></div>
+      <p id="timer" style="margin-top: 15px; font-size: 14px; color: #aeb8c6; text-align: right;"></p>
+    </section>
+  </main>
+
+  <script>
+    // バックアップ＆デフォルト用データ
+    let newsData = [
+      {
+        source: "テレビ愛媛 / FNN",
+        title: "「ちいかわジェット」が松山空港に初到着！送迎デッキにファン約300人",
+        description: "人気キャラクターがデザインされた「ちいかわジェット」が松山空港に初めて到着し、多くのファンや見物客が温かく出迎えました。",
+        date: "2026-10-26"
+      },
+      {
+        source: "愛媛県庁",
+        title: "鬼北町でスギを活用した新素材「改質リグニン」の量産プラント起工式",
+        description: "石油由来プラスチックの代役として期待される植物由来の新素材「改質リグニン」の量産化に向け、世界初の挑戦が愛媛県鬼北町で始まります。",
+        date: "2026-10-22"
+      },
+      {
+        source: "テレビ愛媛",
+        title: "歴史ある道後温泉「飛鳥乃湯泉」の来場者が約10年で200万人を突破！",
+        description: "松山市の道後温泉にある「飛鳥乃湯泉」の累計来場者数が200万人を突破し、記念すべき節目を迎えた来場者へお祝いが贈られました。",
+        date: "2026-10-23"
+      },
+      {
+        source: "松山市",
+        title: "松山市からのお知らせ・秋のイベント・公共施設情報",
+        description: "松山市内の観光スポットや、これからの季節に開催される各種イベント、お役立ち行政情報をご案内します。",
+        date: "2026-10-27"
+      }
+    ];
+
+    let index = 0;
+    let seconds = 12; // 1ニュースあたりの表示秒数（サイネージ向けに少し長めの12秒）
+    let timerInterval = null;
+
+    // GitHub Pages上から最新のGoogleニュース（愛媛）を自動取得する処理
+    async function fetchLatestNews() {
+      const RSS_URL = "https://news.google.com/rss/search?q=%E6%84%9B%E5%AA%9B&hl=ja&gl=JP&ceid=JP:ja";
+      const PROXY_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`;
+
+      try {
+        const response = await fetch(PROXY_URL);
+        if (!response.ok) return;
+        
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const items = xmlDoc.querySelectorAll("item");
+
+        if (items.length > 0) {
+          const fetchedData = Array.from(items).map(item => {
+            const rawTitle = item.querySelector("title")?.textContent || "タイトルなし";
+            let sourceName = "愛媛のニュース";
+            let cleanTitle = rawTitle;
+
+            if (rawTitle.includes(" - ")) {
+              const parts = rawTitle.split(" - ");
+              sourceName = parts.pop();
+              cleanTitle = parts.join(" - ");
+            }
+
+            const pubDate = item.querySelector("pubDate")?.textContent || "";
+            let formattedDate = pubDate;
+            try {
+              const d = new Date(pubDate);
+              formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            } catch(e) {}
+
+            const descHtml = item.querySelector("description")?.textContent || "";
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = descHtml;
+            const cleanDesc = tempDiv.textContent || tempDiv.innerText || "詳細情報は配信元をご確認ください。";
+
+            return {
+              source: sourceName,
+              title: cleanTitle,
+              description: cleanDesc,
+              date: formattedDate
+            };
+          });
+
+          // 取得できたらデータを上書きして最新ニュースで回す
+          newsData = fetchedData;
+          index = 0;
+          document.getElementById("status").textContent = "🟢 最新ニュース自動取得中";
+          showNews();
+        }
+      } catch (error) {
+        // 失敗してもデフォルトデータでそのまま静かに動き続けます
+        console.log("オフライン/プロキシ制限のため内蔵データで稼働");
+      }
+    }
+
+    function showNews() {
+      if (!newsData.length) return;
+      const item = newsData[index];
+
+      document.getElementById("category").textContent = item.source + " ｜ リアルタイム配信";
+      document.getElementById("headline").textContent = item.title;
+      document.getElementById("description").textContent = item.description;
+      document.getElementById("published").textContent = item.date ? "配信日時：" + item.date : "";
+
+      seconds = 12;
+      updateTimer();
+    }
+
+    function nextNews() {
+      if (!newsData.length) return;
+      index = (index + 1) % newsData.length;
+      showNews();
+    }
+
+    function updateTimer() {
+      document.getElementById("timer").textContent = seconds + "秒後に次のニュースへ切替";
+      document.getElementById("bar").style.width = ((12 - seconds) / 12 * 100) + "%";
+    }
+
+    // 1秒ごとの自動送りタイマー
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (newsData.length > 0) {
+        seconds--;
+        if (seconds <= 0) {
+          nextNews();
+        } else {
+          updateTimer();
+        }
+      }
+    }, 1000);
+
+    // 起動時にまず表示し、裏で最新ニュースを取得しに行く
+    showNews();
+    fetchLatestNews();
+
+    // 30分ごとに最新ニュースを再取得してアップデート
+    setInterval(fetchLatestNews, 30 * 60 * 1000);
+  </script>
+</body>
+</html>
