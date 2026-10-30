@@ -170,14 +170,14 @@
                     const { temperature, weathercode } = weatherData.current_weather;
                     const city = CITIES[index];
                     
-                    let info = { text: "不明", icon: "❓", color: "#f0f8ff", animate: "" };
+                    let info = { text: "不明", icon: "", color: "#f0f8ff", animate: "" };
                     
                     if (weathercode === 0) {
-                        info = { text: "快晴", icon: "☀️", color: "#fff9e6", animate: "spin" };
+                        info = { text: "快晴", icon: "", color: "#fff9e6", animate: "spin" };
                     } else if (weathercode <= 3) {
-                        info = { text: "晴れ・曇り", icon: "🌤", color: "#e6f7ff", animate: "bounce" };
+                        info = { text: "晴れ・曇り", icon: "", color: "#e6f7ff", animate: "bounce" };
                     } else if (weathercode >= 61) {
-                        info = { text: "雨", icon: "☔", color: "#e1e1f5", animate: "bounce" };
+                        info = { text: "雨", icon: "", color: "#e1e1f5", animate: "bounce" };
                     }
 
                     const hex = info.color.replace('#', '');
