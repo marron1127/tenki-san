@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シャカシャカポテト | 文化祭デジタルサイネージ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"M PLUS Rounded 1c"', '"Zen Maru Gothic"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              yellow: '#FFC72C',
+              red: '#DA291C',
+              orange: '#FF8800',
+              darkRed: '#900C3F',
+              bgLight: '#FFFBEA'
+            }
+          },
+          keyframes: {
+            shake: {
+              '0%, 100%': { transform: 'rotate(-4deg) translateY(0)' },
+              '50%': { transform: 'rotate(4deg) translateY(-8px)' },
+            },
+            bounceGentle: {
+              '0%, 100%': { transform: 'translateY(0) scale(1)' },
+              '50%': { transform: 'translateY(-10px) scale(1.03)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(255,199,44,0.8))' },
+              '50%': { filter: 'drop-shadow(0 0 35px rgba(218,41,28,0.9))' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-15px) rotate(10deg)' },
+            },
+            marquee: {
+              '0%': { transform: 'translateX(100%)' },
+              '100%': { transform: 'translateX(-100%)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', 'Zen Maru Gothic', sans-serif;
+      user-select: none;
+      overflow: hidden; /* サイネージ表示のためスクロールバーを非表示 */
+      background: radial-gradient(circle at center, #FFF4CE 0%, #FFDC73 60%, #FFA800 100%);
+    }
+
+    /* 浮遊背景ポテトイラスト */
+    .bg-shape {
+      position: absolute;
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* アクションテキストの縁取り効果 */
+    .text-stroke-white {
+      -webkit-text-stroke: 4px #FFFFFF;
+      paint-order: stroke fill;
+    }
+
+    .text-stroke-black {
+      -webkit-text-stroke: 3px #1a1a1a;
+      paint-order: stroke fill;
+    }
+
+    .text-stroke-red {
+      -webkit-text-stroke: 4px #DA291C;
+      paint-order: stroke fill;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex flex-col justify-between p-4 relative text-gray-900">
+
+  <!-- 背景デコレーション（浮遊アイコン） -->
+  <i class="fa-solid fa-box-archive text-8xl text-yellow-700 bg-shape top-10 left-10 animate-float-slow"></i>
+  <i class="fa-solid fa-fire text-9xl text-red-600 bg-shape bottom-20 left-1/4 animate-bounce-gentle"></i>
+  <i class="fa-solid fa-utensils text-8xl text-yellow-800 bg-shape top-20 right-12 animate-float-slow" style="animation-delay: 1.5s;"></i>
+  <i class="fa-solid fa-pepper-hot text-8xl text-red-500 bg-shape bottom-10 right-1/3 animate-bounce-gentle" style="animation-delay: 1s;"></i>
+
+  <!-- ヘッダーエリア -->
+  <header class="relative z-10 flex items-center justify-between bg-white/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-xl border-4 border-yellow-400">
+    <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-store mr-1"></i> 令和8年度 文化祭 I3 シャカシャカポテト
+      <h2 class="text-xl md:text-2xl font-black text-gray-800 tracking-wider">
+        できたてアツアツ！フリフリポテト
+      </h2>
+    </div>
+
+    <!-- ライブ時計とコントロール -->
+    <div class="flex items-center space-x-4">
+      <div class="bg-yellow-100 border-2 border-yellow-500 rounded-xl px-4 py-1 font-extrabold text-yellow-900 text-lg md:text-xl shadow-inner flex items-center">
+        <i class="fa-regular fa-clock mr-2 text-red-500"></i>
+        <span id="live-clock">00:00:00</span>
+      </div>
+      <!-- フルスクリーン切替ボタン -->
+      <button onclick="toggleFullScreen()" class="bg-gray-800 hover:bg-gray-900 text-white p-2.5 rounded-xl transition shadow hover:scale-105 active:scale-95 text-sm" title="全画面表示">
+        <i class="fa-solid fa-expand text-lg"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ（タイトル＋価格＋フレーバー） -->
+  <main class="relative z-10 my-auto flex flex-col justify-center gap-4 py-2">
+    
+    <!-- メインロゴ＆価格エリア -->
+    <div class="grid grid-cols-12 gap-4 items-center">
+      
+      <!-- タイトルロゴ (左側 6列) -->
+      <div class="col-span-6 flex items-center justify-center relative">
+        <div class="relative text-center animate-pulse-glow">
+          <!-- キャッチコピー -->
+          <!-- メインタイトル -->
+          <h1 class="text-6xl lg:text-7xl xl:text-8xl font-black text-red-600 tracking-wider leading-none text-stroke-white drop-shadow-2xl">
+            シャカシャカ<br>
+            <span class="text-yellow-500 text-stroke-red text-7xl lg:text-8xl xl:text-9xl">ポテト</span>
+          </h1>
+          <!-- ポテト＆袋アイコンアニメーション -->
+          <div class="absolute -right-6 -bottom-6 md:-right-10 md:-bottom-8 animate-shake-fast">
+            <div class="relative">
+              <span class="text-6xl md:text-7xl drop-shadow-lg">🍟</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 価格表示カード (右側 6列) -->
+      <div class="col-span-6 flex justify-center">
+        <div class="bg-gradient-to-br from-red-600 to-red-700 text-white p-4 md:p-5 rounded-3xl shadow-2xl border-4 border-yellow-300 transform rotate-1 text-center w-full max-w-lg relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 w-24 h-24 bg-yellow-400 opacity-20 rounded-full"></div>
+          <p class="text-yellow-300 font-extrabold text-xl md:text-2xl tracking-widest uppercase mb-1">PRICE MENU</p>
+          
+          <!-- 小サイズ・大サイズの価格表記 -->
+          <div class="flex items-center justify-around my-2 bg-red-900/40 py-2 px-3 rounded-2xl border border-yellow-400/30">
+            <!-- 小サイズ -->
+            <div class="flex items-baseline">
+              <span class="bg-yellow-400 text-red-950 font-black text-lg md:text-xl px-2.5 py-0.5 rounded-lg mr-2 shadow">小</span>
+              <span class="text-4xl md:text-5xl font-black text-yellow-300 text-stroke-black">200</span>
+              <span class="text-xl md:text-2xl font-black ml-1">円</span>
+            </div>
+
+            <div class="text-yellow-400 font-black text-2xl">/</div>
+
+            <!-- 大サイズ -->
+            <div class="flex items-baseline">
+              <span class="bg-yellow-400 text-red-950 font-black text-lg md:text-xl px-2.5 py-0.5 rounded-lg mr-2 shadow">大</span>
+              <span class="text-4xl md:text-5xl font-black text-yellow-300 text-stroke-black">300</span>
+              <span class="text-xl md:text-2xl font-black ml-1">円</span>
+            </div>
+          </div>
+
+          <div class="bg-yellow-400 text-red-950 font-black text-sm md:text-base py-1.5 px-3 rounded-xl shadow-md border border-white mt-2">
+            選べる5フレーバー！全種類から選べます
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- フレーバー一覧 (5種類) -->
+    <div class="grid grid-cols-5 gap-3 lg:gap-4 mt-2">
+
+      <!-- 1. 塩 -->
+      <div id="flavor-salt" class="flavor-card relative bg-white rounded-2xl p-3 shadow-xl border-4 border-blue-400 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-105">
+        <div class="flavor-card-content w-full flex flex-col items-center h-full justify-between">
+          <div class="w-full bg-blue-500 text-white font-black text-lg md:text-xl py-1 rounded-xl shadow mb-1">
+            定番人気
+          </div>
+          <div class="my-1">
+            <span class="text-4xl md:text-5xl">🧂</span>
+          </div>
+          <h3 class="text-2xl md:text-3xl font-black text-gray-800 tracking-tight my-1">
+            塩
+          </h3>
+          <p class="text-xs md:text-sm font-bold text-gray-600 leading-tight">
+            シンプルイズベスト！<br>素材の旨味が引き立つ
+          </p>
+        </div>
+      </div>
+
+      <!-- 2. コンソメ -->
+      <div id="flavor-consomme" class="flavor-card relative bg-white rounded-2xl p-3 shadow-xl border-4 border-orange-500 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-105">
+        <div class="flavor-card-content w-full flex flex-col items-center h-full justify-between">
+          <div class="w-full bg-orange-500 text-white font-black text-lg md:text-xl py-1 rounded-xl shadow mb-1">
+            やみつきになる！
+          </div>
+          <div class="my-1">
+            <span class="text-4xl md:text-5xl">🧅</span>
+          </div>
+          <h3 class="text-2xl md:text-3xl font-black text-gray-800 tracking-tight my-1">
+            コンソメ
+          </h3>
+          <p class="text-xs md:text-sm font-bold text-gray-600 leading-tight">
+            コク深い野菜と肉の<br>旨味がクセになる！
+          </p>
+        </div>
+      </div>
+
+      <!-- 3. のり塩 -->
+      <div id="flavor-norishio" class="flavor-card relative bg-white rounded-2xl p-3 shadow-xl border-4 border-emerald-500 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-105">
+        <div class="flavor-card-content w-full flex flex-col items-center h-full justify-between">
+          <div class="w-full bg-emerald-600 text-white font-black text-lg md:text-xl py-1 rounded-xl shadow mb-1">
+            風味豊かな
+          </div>
+          <div class="my-1">
+            <span class="text-4xl md:text-5xl">🌊</span>
+          </div>
+          <h3 class="text-2xl md:text-3xl font-black text-gray-800 tracking-tight my-1">
+            のり塩
+          </h3>
+          <p class="text-xs md:text-sm font-bold text-gray-600 leading-tight">
+            青のりの香ばしさと<br>絶妙な塩加減が最高！
+          </p>
+        </div>
+      </div>
+
+      <!-- 4. 粉チーズ -->
+      <div id="flavor-cheese" class="flavor-card relative bg-white rounded-2xl p-3 shadow-xl border-4 border-yellow-400 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-105">
+        <div class="flavor-card-content w-full flex flex-col items-center h-full justify-between">
+          <div class="w-full bg-yellow-500 text-white font-black text-lg md:text-xl py-1 rounded-xl shadow mb-1">
+            濃厚リッチ
+          </div>
+          <div class="my-1">
+            <span class="text-4xl md:text-5xl">🧀</span>
+          </div>
+          <h3 class="text-2xl md:text-3xl font-black text-gray-800 tracking-tight my-1">
+            粉チーズ
+          </h3>
+          <p class="text-xs md:text-sm font-bold text-gray-600 leading-tight">
+            まろやか＆クリーミー！<br>チーズ好き必見
+          </p>
+        </div>
+      </div>
+
+      <!-- 5. チリ -->
+      <div id="flavor-chili" class="flavor-card relative bg-white rounded-2xl p-3 shadow-xl border-4 border-red-600 flex flex-col justify-between items-center text-center transition-all duration-300 hover:scale-105">
+        <div class="flavor-card-content w-full flex flex-col items-center h-full justify-between">
+          <div class="w-full bg-red-600 text-white font-black text-lg md:text-xl py-1 rounded-xl shadow mb-1">
+            ピリ辛旨！
+          </div>
+          <div class="my-1">
+            <span class="text-4xl md:text-5xl">🌶️</span>
+          </div>
+          <h3 class="text-2xl md:text-3xl font-black text-gray-800 tracking-tight my-1">
+            チリ
+          </h3>
+          <p class="text-xs md:text-sm font-bold text-gray-600 leading-tight">
+            スパイシーで後引く辛さ！<br>やみつき間違いなし
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+  <!-- JavaScript -->
+  <script>
+    // リアルタイム時計更新
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('live-clock').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // フルスクリーン切り替え（ラズパイ表示最適化）
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`フルスクリーン化エラー: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+  </script>
+</body>
+</html><!DOCTYPE html>
