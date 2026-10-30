@@ -2,19 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>東予3市 Dynamic Weather - High Visibility Edition</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700;900&display=swap" rel="stylesheet">
-    
+    <title>東予3市 Dynamic Weather</title>
     <style>
         :root {
-            --bg-color: #e0f2f1; /* 夏らしい爽やかな薄いミントブルー */
-            --text-main: #1a1a1a; /* 超高コントラストな黒 */
+            --bg-color: #f0f8ff;
+            --accent-color: #333;
         }
 
         body {
-            font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -23,32 +19,30 @@
             margin: 0;
             background: var(--bg-color);
             transition: background 1s ease;
-            overflow: hidden; /* スクロールバーを強制非表示 */
         }
 
-        /* 日時表示エリア（秒なし・超高コントラスト） */
+        /* 日時表示エリアをさらに巨大化 */
         #current-datetime {
-            font-size: 4.2rem;
-            font-weight: 900;
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 20px 80px;
-            border-radius: 80px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            font-size: 3.5rem; /* 2.2rem -> 3.5rem に大幅アップ */
+            font-weight: bold;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            padding: 20px 60px; /* 横の余白も広げてゆったりと */
+            border-radius: 60px;
+            margin-top: 20px;
+            margin-bottom: 10px; /* カードとの間の余白 */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
             animation: fadeIn 1s forwards ease-out;
             text-align: center;
-            letter-spacing: 1px;
         }
 
         /* コンテナの幅 */
         .weather-container {
             display: flex;
-            gap: 35px;
-            padding: 10px 50px 40px 50px;
-            max-width: 1600px;
+            gap: 30px;
+            padding: 20px 40px 40px 40px;
+            max-width: 1400px;
             width: 100%;
             justify-content: center;
             box-sizing: border-box;
@@ -57,19 +51,18 @@
 
         /* カードのスタイル */
         .weather-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
             padding: 50px 40px;
-            border-radius: 45px;
+            border-radius: 40px;
             text-align: center;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
             transform: translateY(50px);
             opacity: 0;
             animation: floatIn 1s forwards ease-out;
             flex: 1;
-            min-width: 340px;
+            min-width: 320px;
             box-sizing: border-box;
-            border: 2px solid rgba(255,255,255,0.5);
         }
 
         @keyframes fadeIn {
@@ -85,70 +78,37 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* 都市名のバッジ */
-        .location { 
-            font-size: 1.6rem;
-            background: #1a1a1a;
-            color: #fff; 
-            padding: 10px 30px; 
-            border-radius: 30px; 
-            display: inline-block; 
-            font-weight: 700;
-            letter-spacing: 1px;
+        /* アイコン */
+        .icon {
+            font-size: 110px;
+            display: inline-block;
+            margin-bottom: 15px;
         }
 
-        /* アイコン表示エリア（絶対に被らないよう上の余白を多めに） */
-        .icon-box {
-            width: 140px;
-            height: 140px;
-            margin: 25px auto 15px auto; /* 上に25pxのガッツリ隙間を確保 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* アニメーション控えめ（バウンス幅をさらに小さくマイルドに） */
-        .bounce { animation: bounce 3s infinite ease-in-out; }
+        .bounce { animation: bounce 2s infinite ease-in-out; }
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); } /* 8pxだけゆったり動かす */
+            50% { transform: translateY(-20px); }
         }
 
-        /* 回転も超ゆっくり（15秒かけて1周） */
-        .spin { animation: spin 15s infinite linear; }
+        .spin { animation: spin 10s infinite linear; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         /* 文字サイズ */
-        .temp { 
-            font-size: 5.5rem; 
-            font-weight: 900; 
-            color: var(--text-main); 
-            margin: 10px 0; 
-            letter-spacing: -2px;
-        }
-        
-        .status { 
-            font-size: 2.2rem; 
-            color: #333; 
-            font-weight: 700; 
-        }
-        
-        .last-update { 
-            font-size: 1rem; 
-            color: #777; 
-            margin-top: 25px; 
-            font-weight: 700;
-        }
+        .temp { font-size: 5rem; font-weight: bold; color: var(--accent-color); margin: 15px 0; }
+        .status { font-size: 1.8rem; color: #666; font-weight: bold; }
+        .location { font-size: 1.4rem; background: #333; color: #fff; padding: 8px 24px; border-radius: 25px; display: inline-block; }
+        .last-update { font-size: 0.95rem; color: #999; margin-top: 25px; }
     </style>
 </head>
 <body>
 
-    <div id="current-datetime">----年--月--日 (水) --:--</div>
+    <div id="current-datetime">----年--月--日 (水) --:--:--</div>
 
     <div class="weather-container">
         <div class="weather-card" id="saijo">
             <div class="location">西条市</div>
-            <div class="icon-box"></div>
+            <div class="icon">⏳</div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -156,7 +116,7 @@
 
         <div class="weather-card" id="niihama">
             <div class="location">新居浜市</div>
-            <div class="icon-box"></div>
+            <div class="icon">⏳</div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -164,7 +124,7 @@
 
         <div class="weather-card" id="shikokuchuo">
             <div class="location">四国中央市</div>
-            <div class="icon-box"></div>
+            <div class="icon">⏳</div>
             <div class="status">Loading...</div>
             <div class="temp">--°C</div>
             <div class="last-update"></div>
@@ -178,15 +138,6 @@
             { id: 'shikokuchuo', lat: 33.98, lon: 133.54 }
         ];
 
-        // 絶対にバグらないSVGアイコンのデータ（夏らしくクッキリした色調）
-        const ICONS = {
-            loading: `<svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2.5" stroke-linecap="round" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`,
-            clear: `<svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="spin"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
-            cloudy: `<svg width="130" height="130" viewBox="0 0 24 24" fill="none" stroke="#0288d1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bounce"><path d="M12 2v2M4.93 4.93l1.41 1.41M20 12h2M19.07 4.93l-1.41 1.41"/><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25" fill="#fff" fill-opacity="0.8"/></svg>`,
-            rain: `<svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#3f51b5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bounce"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19l-1 3M12 19l-1 3M16 19l-1 3"/></svg>`,
-            unknown: `<svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>`
-        };
-
         function updateClock() {
             const now = new Date();
             const year = now.getFullYear();
@@ -197,13 +148,11 @@
             
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
 
             document.getElementById('current-datetime').innerText = 
-                `${year}年${month}月${date}日 (${day}) ${hours}:${minutes}`;
+                `${year}年${month}月${date}日 (${day}) ${hours}:${minutes}:${seconds}`;
         }
-
-        // 初期状態でローディングアニメーションを表示
-        document.querySelectorAll('.icon-box').forEach(el => el.innerHTML = ICONS.loading);
 
         async function updateWeather() {
             try {
@@ -221,14 +170,14 @@
                     const { temperature, weathercode } = weatherData.current_weather;
                     const city = CITIES[index];
                     
-                    let info = { text: "不明", iconHtml: ICONS.unknown, color: "#e0f2f1" };
+                    let info = { text: "不明", icon: "❓", color: "#f0f8ff", animate: "" };
                     
                     if (weathercode === 0) {
-                        info = { text: "快晴", iconHtml: ICONS.clear, color: "#fff3e0" }; // 爽やかな薄オレンジ
+                        info = { text: "快晴", icon: "☀️", color: "#fff9e6", animate: "spin" };
                     } else if (weathercode <= 3) {
-                        info = { text: "晴れ・曇り", iconHtml: ICONS.cloudy, color: "#e1f5fe" }; // 涼しいライトブルー
+                        info = { text: "晴れ・曇り", icon: "🌤", color: "#e6f7ff", animate: "bounce" };
                     } else if (weathercode >= 61) {
-                        info = { text: "雨", iconHtml: ICONS.rain, color: "#e8eaf6" }; // すっきりした薄紫
+                        info = { text: "雨", icon: "☔", color: "#e1e1f5", animate: "bounce" };
                     }
 
                     const hex = info.color.replace('#', '');
@@ -238,12 +187,13 @@
 
                     const card = document.getElementById(city.id);
                     
-                    // アイコンボックスの中身をSVGコードに差し替え
-                    card.querySelector('.icon-box').innerHTML = info.iconHtml;
+                    const iconEl = card.querySelector('.icon');
+                    iconEl.innerText = info.icon;
+                    iconEl.className = `icon ${info.animate}`;
                     
                     card.querySelector('.status').innerText = info.text;
                     card.querySelector('.temp').innerText = `${temperature}°C`;
-                    card.querySelector('.last-update').innerText = `取得時刻: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                    card.querySelector('.last-update').innerText = `取得時刻: ${new Date().toLocaleTimeString()}`;
                 });
 
                 const avgR = Math.round(totalColorR / CITIES.length);
