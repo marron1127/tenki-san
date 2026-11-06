@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>温湿度モニター</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>温湿度モニター</h1>
+      <p>RASPBERRY PI SENSOR SYSTEM</p>
+    </header>
+
+    <section class="sensor-grid">
+      <article class="sensor-card">
+        <div class="icon">🌡️</div>
+        <h2>温度</h2>
+        <div class="value" id="temperature">--.-<span>℃</span></div>
+      </article>
+
+      <article class="sensor-card">
+        <div class="icon">💧</div>
+        <h2>湿度</h2>
+        <div class="value" id="humidity">--<span>%</span></div>
+      </article>
+    </section>
+
+    <section class="status">
+      <p>センサー：DHT11</p>
+      <p>接続状態：<span id="connection">確認中...</span></p>
+      <p>最終更新：<span id="updated">--</span></p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
