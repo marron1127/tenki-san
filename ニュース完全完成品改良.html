@@ -47,7 +47,7 @@
         /* 元々ある右下のみかん画像 */
         .mican-box {
             position: absolute; bottom: 80px; right: 5%; width: 250px; height: 250px;
-            background-image: url('dark.png');
+            background-image: url('ダーク.png');
             background-size: contain; background-repeat: no-repeat; background-position: bottom right;
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2)); z-index: 10;
         }
@@ -59,7 +59,7 @@
             right: calc(5% + 360px);   /* みかん画像のすぐ左隣にぴったり配置 */
             width: 250px;              /* 幅を350pxに拡大（みかんと同サイズ） */
             height: 250px;             /* 高さを350pxに拡大 */
-            background-image: url('mican.png'); /* ←【53行目】ここにURLをペースト */
+            background-image: url('みきゃん２.png'); /* ←【53行目】ここにURLをペースト */
             background-size: contain; 
             background-repeat: no-repeat; 
             background-position: bottom right;
@@ -115,6 +115,109 @@
         let currentIndex = 0;
         let rotationInterval = null;
 
+        
+
+function removeSimilarNews(articles) {
+    const uniqueArticles = [];
+    const seenLinks = new Set();
+
+    // 比較用に文字を整理
+    function normalize(text) {
+        return (text || '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/[【】「」『』（）()、。！!？?・\s：:]/g, '')
+            .toLowerCase();
+    }
+
+    // 2文字・3文字の組み合わせを抽出
+    function getFeatures(text) {
+        const result = new Set();
+
+        [2, 3].forEach(size => {
+            for (let i = 0; i <= text.length - size; i++) {
+                result.add(text.substring(i, i + size));
+            }
+        });
+
+        return result;
+    }
+
+    // 類似度を計算
+    function similarity(text1, text2) {
+        const a = getFeatures(text1);
+        const b = getFeatures(text2);
+
+        if (!a.size || !b.size) return 0;
+
+        let common = 0;
+
+        a.forEach(word => {
+            if (b.has(word)) common++;
+        });
+
+        return (2 * common) / (a.size + b.size);
+    }
+
+    // 記事の日付を比較
+    function dateIsClose(date1, date2) {
+        const d1 = new Date(date1).getTime();
+        const d2 = new Date(date2).getTime();
+
+        if (!Number.isFinite(d1) || !Number.isFinite(d2)) {
+            return true;
+        }
+
+        return Math.abs(d1 - d2) <= 48 * 60 * 60 * 1000;
+    }
+
+    articles.forEach(item => {
+        const title = normalize(item.title);
+        const description = normalize(item.description);
+        const link = item.link || '';
+
+        if (!title) return;
+
+        if (link && seenLinks.has(link)) return;
+
+        const isDuplicate = uniqueArticles.some(old => {
+            if (!dateIsClose(item.pubDate, old.pubDate)) {
+                return false;
+            }
+
+            const oldTitle = normalize(old.title);
+            const oldDescription = normalize(old.description);
+
+            const titleScore = similarity(title, oldTitle);
+
+            const descriptionScore =
+                description && oldDescription
+                    ? similarity(description, oldDescription)
+                    : titleScore;
+
+            const totalScore =
+                titleScore * 0.65 +
+                descriptionScore * 0.35;
+
+            return totalScore >= 0.25;
+        });
+
+        if (!isDuplicate) {
+            uniqueArticles.push(item);
+            if (link) seenLinks.add(link);
+        }
+    });
+
+    return uniqueArticles;
+}
+
+
+
+
+
+
+
         async function fetchNews() {
             const RSS_URL = 'https://news.google.com/rss/search?q=愛媛&hl=ja&gl=JP&ceid=JP:ja';
             const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
@@ -123,7 +226,7 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 if (data.status === 'ok' && data.items.length > 0) {
-                    newsArticles = data.items;
+                    newsArticles = removeSimilarNews(data.items);
                     if (!rotationInterval) {
                         updateDisplay();
                         rotationInterval = setInterval(updateDisplay, 10000);
